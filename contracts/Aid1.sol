@@ -1,7 +1,5 @@
 pragma solidity ^0.4.4;
 
-// DO NOT DEPLOY THIS CODE. IT IS BOT FINISHED AND NOT SECURE!!!!!!!
-
 import './SafeMath.sol';
 import './ERC20Interface.sol';
 
