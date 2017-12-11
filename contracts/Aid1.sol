@@ -9,21 +9,21 @@ contract Aid1 is ERC20Interface {
 
 	// ERC20 stuff
 
-	uint256 public _totalSupply = 238000000000000000000000000; // 238,000,000.00
+	uint256 public totalSupply = 238000000000000000000000000; // 238,000,000.00
 	string public constant name = "Aid-1";
 	string public constant symbol = "AID1";
 	uint8 public constant decimals = 18;
 
-	mapping(address => uint256) public balances;
-	mapping(address => mapping (address => uint256)) public allowed;
+	mapping(address => uint256) private balances;
+	mapping(address => mapping (address => uint256)) private allowed;
  
 	// Owner
 
-	address public owner;
+	address private owner;
 
 	// Re-entry protection 
 
-	bool public entryLock = false;
+	bool private entryLock = false;
 
 	// Contract parameters
 
@@ -32,9 +32,9 @@ contract Aid1 is ERC20Interface {
 
 	// Contract variables
 
-	uint8 public state = 0; // 0 = SETUP   1 = locked   2 = unlocked
+	uint8 public state = 0; // 0 = SETUP   1 = LOCKED   2 = UNLOCKED
 	uint256 public lockTime;
-	mapping(address => address) public toAddressByTokenAddress;
+	mapping(address => address) private toAddressByTokenAddress;
 	address[] public tokenAddresses;
 
 	// ************************************************************************
@@ -45,7 +45,7 @@ contract Aid1 is ERC20Interface {
 
 	function Aid1() public {
 		owner = msg.sender;
-		balances[owner] = _totalSupply;
+		balances[owner] = totalSupply;
 	}
 
 	// ************************************************************************
@@ -82,10 +82,6 @@ contract Aid1 is ERC20Interface {
 	function balanceOf(address _addr) public view returns(uint256 balance) {
 		return balances[_addr];
 	}
-
-	function totalSupply() public view returns(uint256) {
- 		return _totalSupply;
- 	}
 
 	event Transfer(address indexed _from, address indexed _to, uint256 _amount);
 	event Approval(address indexed _owner, address indexed _spender, uint256 _amount);	
@@ -136,7 +132,7 @@ contract Aid1 is ERC20Interface {
 
 		require(_owner != address(0));
 		require(_spender != address(0));
-		
+
 		return allowed[_owner][_spender];
 	}
 
@@ -158,7 +154,7 @@ contract Aid1 is ERC20Interface {
 	function setupAgreement(
 			address _tokenAddress,
 			address _to, 
-			uint256 _sendAmount) public onlyState(0 /* SETUP */) ownerOnly noRentry returns(bool) {
+			uint256 _sendAmount) external onlyState(0 /* SETUP */) ownerOnly noRentry returns(bool) {
 
 		require(_tokenAddress != address(0));
 		require(_to != address(0));
@@ -175,7 +171,7 @@ contract Aid1 is ERC20Interface {
 	}
 
 	function cancelAgreement(
-			address _tokenAddress) public onlyState(0 /* SETUP */) ownerOnly noRentry returns(bool) {
+			address _tokenAddress) external onlyState(0 /* SETUP */) ownerOnly noRentry returns(bool) {
 
 		require(_tokenAddress != address(0));
 
@@ -196,19 +192,19 @@ contract Aid1 is ERC20Interface {
 	function returnTokens(
 		address _tokenAddress,
 		address _to,
-		uint256 _amount) public onlyState(0 /* SETUP */) ownerOnly noRentry returns(bool) {
+		uint256 _amount) external onlyState(0 /* SETUP */) ownerOnly noRentry returns(bool) {
 		
 		require(_to != address(0));
 
 		return ERC20Interface(_tokenAddress).transfer(_to, _amount);
 	}
 
-	function lock() public onlyState(0 /* SETUP */) ownerOnly returns(bool) {
+	function lock() external onlyState(0 /* SETUP */) ownerOnly returns(bool) {
 
 		state = 1 /* LOCKED */;
-		_totalSupply.sub(balances[owner]);
-		balances[owner] = _totalSupply.mul(ownerPercent).div(100);
-		_totalSupply.add(balances[owner]);
+		totalSupply.sub(balances[owner]);
+		balances[owner] = totalSupply.mul(ownerPercent).div(100);
+		totalSupply.add(balances[owner]);
 
 		lockTime = block.timestamp;
 
@@ -221,7 +217,7 @@ contract Aid1 is ERC20Interface {
 	//
 	// ************************************************************************	
 
-	function unlock() public onlyState(1 /* LOCKED */) returns(bool) {
+	function unlock() external onlyState(1 /* LOCKED */) returns(bool) {
 		require(lockTime.add(lockInterval) <= block.timestamp);
 
 		state = 2 /* UNLOCKED */;
@@ -237,14 +233,14 @@ contract Aid1 is ERC20Interface {
 
 	function cashOut(
 		uint256 _amount, 
-		address[] _additionalTokens) public onlyState(2 /* UNLOCKED */) noRentry returns(bool) {
+		address[] _additionalTokens) external onlyState(2 /* UNLOCKED */) noRentry returns(bool) {
 		
 		require(_amount <= balances[msg.sender]);
 		require(_amount > 0);
 
-		uint256 totalSupplySaved = _totalSupply;
+		uint256 totalSupplySaved = totalSupply;
 
-		_totalSupply.sub(_amount);
+		totalSupply.sub(_amount);
 		balances[msg.sender] = balances[msg.sender].sub(_amount);
 
 		// withdraw share of whatever ether the contract has accrued
