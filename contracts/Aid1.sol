@@ -27,8 +27,8 @@ contract Aid1 is ERC20Interface {
 
 	// Contract parameters
 
-	uint8 public ownerPercent = 10;
-	uint256 public lockInterval = 7 years;
+	uint8 public constant ownerPercent = 10;
+	uint256 public constant lockInterval = 7 years;
 
 	// Contract variables
 
@@ -137,6 +137,8 @@ contract Aid1 is ERC20Interface {
 	}
 
 	// Non-ERC20
+
+	function() public payable { }
 
  	function getTokensHeld(address _tokenAddress) public view returns(uint256) {
 
