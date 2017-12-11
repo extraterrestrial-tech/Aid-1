@@ -121,6 +121,11 @@ contract Aid1 is ERC20Interface {
  	}
 
  	function approve(address _spender, uint _amount) public returns(bool success) {
+
+		require(_spender != address(0));
+		require(_amount > 0);
+		require(_amount <= balances[msg.sender]);
+
 		allowed[msg.sender][_spender] = _amount;
 		Approval(msg.sender, _spender, _amount);
 
@@ -128,6 +133,10 @@ contract Aid1 is ERC20Interface {
  	}
 
 	function allowance(address _owner, address _spender) public view returns(uint256 remaining) {
+
+		require(_owner != address(0));
+		require(_spender != address(0));
+		
 		return allowed[_owner][_spender];
 	}
 
@@ -140,13 +149,11 @@ contract Aid1 is ERC20Interface {
 		return ERC20Interface(_tokenAddress).balanceOf(address(this));
 	}
 
-
 	// ************************************************************************
 	//
 	// Methods for state SETUP
 	//
 	// ************************************************************************	
-
 
 	function setupAgreement(
 			address _tokenAddress,
