@@ -54,7 +54,7 @@ contract Aid1 is ERC20Interface {
 	//
 	// ************************************************************************	
 
-	modifier noRentry() {
+	modifier noReentry() {
 		require(entryLock == false);
 		entryLock = true;
 		_;
@@ -156,7 +156,7 @@ contract Aid1 is ERC20Interface {
 	function setupAgreement(
 			address _tokenAddress,
 			address _to, 
-			uint256 _sendAmount) external onlyState(0 /* SETUP */) ownerOnly noRentry returns(bool) {
+			uint256 _sendAmount) external onlyState(0 /* SETUP */) ownerOnly noReentry returns(bool) {
 
 		require(_tokenAddress != address(0));
 		require(_to != address(0));
@@ -173,7 +173,7 @@ contract Aid1 is ERC20Interface {
 	}
 
 	function cancelAgreement(
-			address _tokenAddress) external onlyState(0 /* SETUP */) ownerOnly noRentry returns(bool) {
+			address _tokenAddress) external onlyState(0 /* SETUP */) ownerOnly noReentry returns(bool) {
 
 		require(_tokenAddress != address(0));
 
@@ -194,7 +194,7 @@ contract Aid1 is ERC20Interface {
 	function returnTokens(
 		address _tokenAddress,
 		address _to,
-		uint256 _amount) external onlyState(0 /* SETUP */) ownerOnly noRentry returns(bool) {
+		uint256 _amount) external onlyState(0 /* SETUP */) ownerOnly noReentry returns(bool) {
 		
 		require(_to != address(0));
 
@@ -235,7 +235,7 @@ contract Aid1 is ERC20Interface {
 
 	function cashOut(
 		uint256 _amount, 
-		address[] _additionalTokens) external onlyState(2 /* UNLOCKED */) noRentry returns(bool) {
+		address[] _additionalTokens) external onlyState(2 /* UNLOCKED */) noReentry returns(bool) {
 		
 		require(_amount <= balances[msg.sender]);
 		require(_amount > 0);
