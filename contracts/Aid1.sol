@@ -79,18 +79,24 @@ contract Aid1 is ERC20Interface {
 
 	// ERC20 stuff
 
-	function balanceOf(address _addr) public view returns(uint256 balance) {
-		return balances[_addr];
-	}
-
 	event Transfer(address indexed _from, address indexed _to, uint256 _amount);
 	event Approval(address indexed _owner, address indexed _spender, uint256 _amount);	
 
+	function balanceOf(address _addr) public view returns(uint256 balance) {
+
+		require(_addr != address(0));
+
+		return balances[_addr];
+	}
+
 	function transfer(address _to, uint256 _amount) public returns(bool sucess) {
+
 		require(_to != address(0));
 		require(_amount > 0);
 		require(_amount <= balances[msg.sender]);
 		require(balances[_to] + _amount > balances[_to]);
+
+		require(state != 0 /* SETUP */ || msg.sender == owner);
 
 		balances[msg.sender] = balances[msg.sender].sub(_amount);
 		balances[_to] = balances[_to].add(_amount);
@@ -101,11 +107,14 @@ contract Aid1 is ERC20Interface {
 	}	
 
  	function transferFrom(address _from, address _to, uint _amount) public returns(bool sucess) {
+
+		require(_from != address(0));
 		require(_to != address(0));
 		require(_amount > 0);
 		require(_amount <= balances[_from]);
 		require(_amount <= allowed[_from][msg.sender]);
-		require(balances[_to] + _amount > balances[_to]);
+
+		require(state != 0 /* SETUP */);
 
 		balances[_from] = balances[_from].sub(_amount);
 		balances[_to] = balances[_to].add(_amount);
@@ -121,6 +130,8 @@ contract Aid1 is ERC20Interface {
 		require(_spender != address(0));
 		require(_amount > 0);
 		require(_amount <= balances[msg.sender]);
+
+		require(state != 0 /* SETUP */);
 
 		allowed[msg.sender][_spender] = _amount;
 		Approval(msg.sender, _spender, _amount);
