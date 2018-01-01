@@ -9,14 +9,14 @@ contract Aid1 is ERC20Interface {
 
 	// ERC20 stuff
 
-	uint256 public totalSupply = 238000000000000000000000000; // 238,000,000.00
-	uint256 public sendAmount = 1000000000000000000000000; // 1,000,000.00
+	uint256 public totalSupply = 218000000000000000000000000; // 238,000,000.00
 	string public constant name = "Aid-1";
 	string public constant symbol = "AID1";
 	uint8 public constant decimals = 18;
 
 	mapping(address => uint256) private balances;
 	mapping(address => mapping (address => uint256)) private allowed;
+	mapping(address => mapping (address => uint256)) private cashOutMap;
  
 	// Owner
 
@@ -28,13 +28,20 @@ contract Aid1 is ERC20Interface {
 
 	// Contract parameters
 
-	uint8 public constant ownerPercent = 10;
+	uint8 public constant ownerTokens = 9;
 	uint256 public releaseTime = 1729641600; // October 23 2024
+	uint256 public sendAmount = 1000000000000000000000000; // 1,000,000.00 tokens
+	uint256 public payoutMinimum = 1000000000000000000; // 1 token
 
 	// Contract variables
 
 	uint8 public state = 0; // 0 = SETUP   1 = LOCKED   2 = UNLOCKED
 	address[] public tokenAddresses;
+	mapping(address => bool) tokenAddressesMap;
+
+	address[] public tokenHolders;
+	mapping(address => bool) tokenHoldersMap;
+
 
 	// ************************************************************************
 	//
@@ -95,10 +102,13 @@ contract Aid1 is ERC20Interface {
 		require(_amount <= balances[msg.sender]);
 		require(balances[_to] + _amount > balances[_to]);
 
-		require(state != 0 /* SETUP */ || msg.sender == owner);
-
 		balances[msg.sender] = balances[msg.sender].sub(_amount);
 		balances[_to] = balances[_to].add(_amount);
+
+		if(tokenHoldersMap[_to] == false) {
+			tokenHolders.push(_to);
+			tokenHoldersMap[_to] = true;
+		}
 
 		Transfer(msg.sender, _to, _amount);
 
@@ -113,11 +123,14 @@ contract Aid1 is ERC20Interface {
 		require(_amount <= balances[_from]);
 		require(_amount <= allowed[_from][msg.sender]);
 
-		require(state != 0 /* SETUP */);
-
 		balances[_from] = balances[_from].sub(_amount);
 		balances[_to] = balances[_to].add(_amount);
 		allowed[_from][msg.sender] = allowed[_from][msg.sender].sub(_amount);
+
+		if(tokenHoldersMap[_to] == false) {
+			tokenHolders.push(_to);
+			tokenHoldersMap[_to] = true;
+		}
 
 		Transfer(_from, _to, _amount);
 
@@ -129,8 +142,6 @@ contract Aid1 is ERC20Interface {
 		require(_spender != address(0));
 		require(_amount > 0);
 		require(_amount <= balances[msg.sender]);
-
-		require(state != 0 /* SETUP */);
 
 		allowed[msg.sender][_spender] = _amount;
 		Approval(msg.sender, _spender, _amount);
@@ -157,28 +168,6 @@ contract Aid1 is ERC20Interface {
 		return ERC20Interface(_tokenAddress).balanceOf(address(this));
 	}
 
-	/*
-	function approveToken(
-			address _tokenAddress) external ownerOnly noReentry returns(bool) {
-
-		require(_tokenAddress != address(0));
-
-		tokenAddresses.push(_tokenAddress);
-
-		return true;
-	}	
-
-	function disqualifyToken(
-			address _tokenAddress) external ownerOnly noReentry returns(bool) {
-
-		require(_tokenAddress != address(0));
-
-		tokenAddresses.delete(_tokenAddress);
-
-		return true;
-	}
-	*/	
-
 	// ************************************************************************
 	//
 	// Methods for state SETUP
@@ -187,22 +176,29 @@ contract Aid1 is ERC20Interface {
 
 	function setupAgreement(
 			address _tokenAddress,
-			address _to, 
+			address _to,
+			uint256 _sendAmount,
 			uint256 _receiveAmount
 			) external onlyState(0 /* SETUP */) ownerOnly noReentry returns(bool) {
 
 		require(_tokenAddress != address(0));
 		require(_to != address(0));
 		require(sendAmount <= balances[owner]);
+		require(_sendAmount >= sendAmount);
 
-		tokenAddresses.push(_tokenAddress);
+		if(tokenAddressesMap[_tokenAddress] == false) {
+			tokenAddresses.push(_tokenAddress);
+			tokenAddressesMap[_tokenAddress] = true;
+		}
 
-		balances[owner].sub(sendAmount);
-		balances[_to].add(sendAmount);
+		balances[owner].sub(_sendAmount);
+		balances[_to].add(_sendAmount);
 
-		ERC20Interface(_tokenAddress).transferFrom(_to, this, _receiveAmount);
+		if(_receiveAmount > 0) {
+			return ERC20Interface(_tokenAddress).transferFrom(_to, this, _receiveAmount);	
+		}
 
-		return true;
+		return true;	
 	}
 
 	function lock() external onlyState(0 /* SETUP */) ownerOnly returns(bool) {
@@ -221,6 +217,19 @@ contract Aid1 is ERC20Interface {
 	//
 	// ************************************************************************	
 
+	function registerToken(
+			address _tokenAddress) external onlyState(1 /* LOCKED */) noReentry returns(bool) {
+
+		require(_tokenAddress != address(0));
+
+		if(tokenAddressesMap[_tokenAddress] == false) {
+			tokenAddresses.push(_tokenAddress);
+			tokenAddressesMap[_tokenAddress] = true;
+		}
+
+		return true;	
+	}
+	
 	function unlock() external onlyState(1 /* LOCKED */) returns(bool) {
 		require(releaseTime <= block.timestamp);
 
@@ -233,39 +242,36 @@ contract Aid1 is ERC20Interface {
 	//
 	// Methods for state UNLOCKED
 	//
-	// ************************************************************************	
+	// ************************************************************************
 
-	function cashOut(
-		uint256 _amount) external onlyState(2 /* UNLOCKED */) noReentry returns(bool) {
-		
-		require(_amount <= balances[msg.sender]);
-		require(_amount > 0);
+	function cashOutEther() external onlyState(2 /* UNLOCKED */) noReentry returns(bool) {
 
-		uint256 totalSupplySaved = totalSupply;
-
-		totalSupply.sub(_amount);
-		balances[msg.sender] = balances[msg.sender].sub(_amount);
-
-		// withdraw share of whatever ether the contract has accrued
-		uint256 etherSum = _amount.mul(this.balance).div(totalSupplySaved);
-		if(etherSum <= this.balance) {
-			msg.sender.send(etherSum);
-		}
-
-		address tokenAddress;
-		uint256 sum;
-		uint index;
-
-		// withdraw tokens of each kind
-		for(index = 0; index < tokenAddresses.length; index++) {
-			tokenAddress = tokenAddresses[index];
-			sum = getTokensHeld(tokenAddress);
-			if(sum > 0) {
-				sum = sum.mul(_amount).div(totalSupplySaved);
-				if(sum > 0) {
-					ERC20Interface(tokenAddress).transfer(msg.sender, sum);
+		uint256 total = this.balance;
+		if(total > 0) {
+			for(uint index = 0; index < tokenHolders.length; index++) {
+				address tokenHolder = tokenHolders[index];
+				if(balances[tokenHolder] >= payoutMinimum) {
+					uint256 sum = total.mul(balances[tokenHolder]).div(totalSupply);
+					tokenHolder.send(sum);
 				}
 			}
+		}
+
+		return true;
+	}
+
+	function cashOut(
+		address _tokenAddress) external onlyState(2 /* UNLOCKED */) noReentry returns(bool) {
+		
+		uint256 total = getTokensHeld(_tokenAddress);
+		if(total > 0) {
+			for(uint index = 0; index < tokenHolders.length; index++) {
+				address tokenHolder = tokenHolders[index];
+				if(balances[tokenHolder] >= payoutMinimum) {
+					uint256 sum = total.mul(balances[tokenHolder]).div(totalSupply);
+					ERC20Interface(_tokenAddress).transfer(tokenHolder, sum);				
+				}
+			}			
 		}
 
 		return true;
