@@ -31,7 +31,6 @@
     * _sendAmount should be >= _sendAmount_
   * If _receiveAmount > 0 cause other contract to transfer _receiveAmount tokens to this contract
   * Add token address to token list (unique)
-  
 * Method lock
   * Can only be called during state SETUP
   * Can only be called by owner
