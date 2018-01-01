@@ -44,22 +44,23 @@
   * Can be called by anybody
   * Receive parameters
     * _tokenAddress: address of token smart contract
-* Add token address to token list (unique)
+  * Add token address to token list (unique)
 * Method unlock
-* If after releaseTime
-* Can be called by anybody
-* Change state to UNLOCKED
-* During state UNLOCKED
+  * If after releaseTime
+  * Can be called by anybody
+  * Change state to UNLOCKED
+
+### During state UNLOCKED
 * Method cashOutEther
-* Can be called by anybody
-* Distribute ether balance between all token holders on pro rata basis
-* Only send to token owners who own >= payoutMinimum tokens
+  * Can be called by anybody
+  * Distribute ether balance between all token holders on pro rata basis
+  * Only send to token owners who own >= payoutMinimum tokens
 * Method cashOut
-* Can be called by anybody
-* Receive parameters
-* _tokenAddress: address of token smart contract
-* Distribute token balance between all token holders on pro rata basis
-* Only send to token owners who own >= payoutMinimum tokens
+  * Can be called by anybody
+  * Receive parameters
+    * _tokenAddress: address of token smart contract
+  * Distribute token balance between all token holders on pro rata basis
+  * Only send to token owners who own >= payoutMinimum tokens
 
 
 
