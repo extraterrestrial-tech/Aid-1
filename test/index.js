@@ -38,17 +38,13 @@ contract('at creation', () => {
 
 contract('State = 0 (SETUP)', () => {
 
-	forInstance('owner may transfer tokens', instance => {
+	forInstance('anybody may transfer tokens', instance => {
 		return instance.transfer(otherAddress, toFixed(1))
 		.then(flag => assert(flag))
 		.then(() => instance.balanceOf.call(owner))
 		.then(balance => assert.equal(balance.valueOf(), toFixed(238000000 - 1)))
 		.then(() => instance.balanceOf.call(otherAddress))
 		.then(balance => assert.equal(balance.valueOf(), toFixed(1)));
-	});
-
-	forInstance('only owner may transfer tokens', instance => {
-		return expectToThrow(() => instance.transfer(owner, toFixed(1), { from: otherAddress }));
 	});
 
 	forInstance('should not be possible to call approve', instance => {
