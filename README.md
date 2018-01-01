@@ -3,10 +3,10 @@
 ## Acceptance Criteria
 
 ### Parameters
-* ownerPercent = 9
-* releaseTime = 10/23/2024
-* sendAmount = 1,000,000 tokens
-* payoutMinimum = 1 token
+* _ownerPercent_ = 9
+* _releaseTime_ = 10/23/2024
+* _sendAmount_ = 1,000,000 tokens
+* _payoutMinimum_ = 1 token
 
 ### ERC20 token
 * Symbol “AID1”
