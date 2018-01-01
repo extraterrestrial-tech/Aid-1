@@ -20,7 +20,7 @@
 * Total supply is 218,000,000 tokens
 
 ### During state SETUP
-* Method setupAgreement
+* Method _setupAgreement_
   * Can only be called by owner
   * Receives parameters:
     * _tokenAddress: address of other token smart contract
@@ -28,7 +28,7 @@
     * _sendAmount: how many tokens to send
     * _receiveAmount: how many tokens to receive
     *  Send _sendAmount tokens from owner to address _to
-    * _sendAmount should be >= sendAmount
+    * _sendAmount should be >= _sendAmount_
   * If _receiveAmount > 0 cause other contract to transfer _receiveAmount tokens to this contract
   * Add token address to token list (unique)
   
@@ -36,31 +36,31 @@
   * Can only be called during state SETUP
   * Can only be called by owner
   * Destroy owner’s tokens
-  * Create ownerPercent of total tokens sent, give it to owner
+  * Create _ownerPercent_ of total tokens sent, give it to owner
   * Change state to LOCKED
 
 ### During state LOCKED
-* Method registerToken
+* Method _registerToken_
   * Can be called by anybody
   * Receive parameters
     * _tokenAddress: address of token smart contract
   * Add token address to token list (unique)
 * Method unlock
-  * If after releaseTime
+  * If after _releaseTime_
   * Can be called by anybody
   * Change state to UNLOCKED
 
 ### During state UNLOCKED
-* Method cashOutEther
+* Method _cashOutEther_
   * Can be called by anybody
   * Distribute ether balance between all token holders on pro rata basis
-  * Only send to token owners who own >= payoutMinimum tokens
-* Method cashOut
+  * Only send to token owners who own >= _payoutMinimum_ tokens
+* Method _cashOut_
   * Can be called by anybody
   * Receive parameters
     * _tokenAddress: address of token smart contract
   * Distribute token balance between all token holders on pro rata basis
-  * Only send to token owners who own >= payoutMinimum tokens
+  * Only send to token owners who own >= _payoutMinimum_ tokens
 
 
 
