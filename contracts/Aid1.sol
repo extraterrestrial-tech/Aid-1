@@ -9,7 +9,7 @@ contract Aid1 is ERC20Interface {
 
 	// ERC20 stuff
 
-	uint256 public totalSupply = 219000000000000000000000000; // 238,000,000.00
+	uint256 public totalSupply = 219000000000000000000000000; // 219,000,000.00
 	string public constant name = "Aid-1";
 	string public constant symbol = "AID1";
 	uint8 public constant decimals = 18;
@@ -215,6 +215,7 @@ contract Aid1 is ERC20Interface {
 	// ************************************************************************	
 	
 	function unlock() external onlyState(1 /* LOCKED */) returns(bool) {
+
 		require(releaseTime <= block.timestamp);
 
 		state = 2 /* UNLOCKED */;
@@ -238,7 +239,7 @@ contract Aid1 is ERC20Interface {
 			for(uint index = 0; index < tokenHolders.length; index++) {
 				address tokenHolder = tokenHolders[index];
 				if(balances[tokenHolder] >= payoutMinimum) {
-					uint256 sum = total.mul(balances[tokenHolder]).div(totalSupply);
+					uint256 sum = (total * balances[tokenHolder]) / totalSupply;
 					tokenHolder.send(sum);
 				}
 			}
@@ -259,7 +260,7 @@ contract Aid1 is ERC20Interface {
 			for(uint index = 0; index < tokenHolders.length; index++) {
 				address tokenHolder = tokenHolders[index];
 				if(balances[tokenHolder] >= payoutMinimum) {
-					uint256 sum = total.mul(balances[tokenHolder]).div(totalSupply);
+					uint256 sum = (total * balances[tokenHolder]) / totalSupply;
 					ERC20Interface(_tokenAddress).transfer(tokenHolder, sum);				
 				}
 			}			
