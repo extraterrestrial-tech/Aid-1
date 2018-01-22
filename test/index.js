@@ -27,7 +27,7 @@ contract('at creation', () => {
 
 	forInstance('owner should own 238,000,000 tokens', instance => {
 		return instance.balanceOf.call(owner)
-		.then(balance => assert.equal(balance.valueOf(), toFixed(238000000)));
+		.then(balance => assert.equal(balance.valueOf(), toFixed(219000000)));
 	});	
 
 	forInstance('state should be 0 (SETUP)', instance => {
@@ -42,17 +42,9 @@ contract('State = 0 (SETUP)', () => {
 		return instance.transfer(otherAddress, toFixed(1))
 		.then(flag => assert(flag))
 		.then(() => instance.balanceOf.call(owner))
-		.then(balance => assert.equal(balance.valueOf(), toFixed(238000000 - 1)))
+		.then(balance => assert.equal(balance.valueOf(), toFixed(219000000 - 1)))
 		.then(() => instance.balanceOf.call(otherAddress))
 		.then(balance => assert.equal(balance.valueOf(), toFixed(1)));
-	});
-
-	forInstance('should not be possible to call approve', instance => {
-		return expectToThrow(() => instance.approve(otherAddress, toFixed(1)));
-	});
-
-	forInstance('should not be possible to call transferFrom', instance => {
-		return expectToThrow(() => instance.approve(otherAddress, toFixed(1)));
 	});
 
 	forInstance('should not be possible to call unlock', instance => {
