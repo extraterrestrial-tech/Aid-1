@@ -92,7 +92,7 @@ contract Aid1 is ERC20Interface {
 		require(_to != address(0));
 		require(_amount > 0);
 		require(_amount <= balances[msg.sender]);
-		require(balances[_to] + _amount > balances[_to]);
+		//require(balances[_to] + _amount > balances[_to]);
 
 		balances[msg.sender] = balances[msg.sender].sub(_amount);
 		balances[_to] = balances[_to].add(_amount);
@@ -190,12 +190,14 @@ contract Aid1 is ERC20Interface {
 		balances[owner] = balances[owner].sub(_sendAmount);
 		balances[_to] = balances[_to].add(_sendAmount);
 
-		if(_receiveAmount > 0) {
-			return ERC20Interface(_tokenAddress).transferFrom(_to, this, _receiveAmount);	
-		}
+		Transfer(owner, _to, _sendAmount);
+
+		bool flag = _receiveAmount > 0 ?
+			ERC20Interface(_tokenAddress).transferFrom(_to, this, _receiveAmount) : 
+			true;
 
 		entryLock = false;
-		return true;	
+		return flag;
 	}
 
 	function lock() external onlyState(0 /* SETUP */) ownerOnly returns(bool) {
@@ -240,7 +242,7 @@ contract Aid1 is ERC20Interface {
 				address tokenHolder = tokenHolders[index];
 				if(balances[tokenHolder] >= payoutMinimum) {
 					uint256 sum = (total * balances[tokenHolder]) / totalSupply;
-					tokenHolder.send(sum);
+					tokenHolder.send(sum <= this.balance ? sum : this.balance);
 				}
 			}
 		}
@@ -270,3 +272,14 @@ contract Aid1 is ERC20Interface {
 		return true;
 	}
 }
+
+contract Aid1_Testing is Aid1 {
+
+	function unlock() external onlyState(1 /* LOCKED */) returns(bool) {
+
+		state = 2 /* UNLOCKED */;
+
+		return true;
+	}
+}
+

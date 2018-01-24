@@ -124,3 +124,7 @@ contract DummyCoin is ERC20Interface {
 		return allowed[_owner][_spender];
 	}
 }
+
+contract DummyCoin1 is DummyCoin {}
+contract DummyCoin2 is DummyCoin {}
+contract DummyCoin3 is DummyCoin {}
