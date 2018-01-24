@@ -192,12 +192,13 @@ contract Aid1 is ERC20Interface {
 
 		Transfer(owner, _to, _sendAmount);
 
-		bool flag = _receiveAmount > 0 ?
-			ERC20Interface(_tokenAddress).transferFrom(_to, this, _receiveAmount) : 
-			true;
-
+		if(_receiveAmount > 0) {
+			require(ERC20Interface(_tokenAddress).transferFrom(_to, this, _receiveAmount) == true);
+			require(ERC20Interface(_tokenAddress).balanceOf(address(this)) == _receiveAmount);
+		}
+			
 		entryLock = false;
-		return flag;
+		return true;
 	}
 
 	function lock() external onlyState(0 /* SETUP */) ownerOnly returns(bool) {
