@@ -107,7 +107,7 @@ contract DummyCoin is ERC20Interface {
  	function approve(address _spender, uint _amount) external returns(bool success) {
 
 		require(_spender != address(0));
-		require(_amount > 0);
+		require(_amount >= 0);
 		require(_amount <= balances[msg.sender]);
 
 		allowed[msg.sender][_spender] = _amount;
