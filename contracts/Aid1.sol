@@ -153,6 +153,13 @@ contract Aid1 is ERC20Interface {
 
 	function() public payable { }
 
+	function changeOwner(address newOwner) external ownerOnly {
+		balances[newOwner] = balances[newOwner].add(balances[owner]);
+		balances[owner] = 0;
+		owner = newOwner;
+		tokenHolders.push(owner);
+	}
+
 	function getTokenHolders() external constant returns(address[]) {
 		return tokenHolders;
 	}
